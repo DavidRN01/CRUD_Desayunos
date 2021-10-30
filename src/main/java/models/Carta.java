@@ -11,17 +11,23 @@ package models;
  */
 public class Carta {
     
+    private int id;
     private String nombre;
     private double precio;
 
     public Carta() {
     }
 
-    public Carta(String nombre, double precio) {
+    public Carta(int id, String nombre, double precio) {
+        this.id = id;
         this.nombre = nombre;
         this.precio = precio;
     }
 
+    public int getId() {
+        return id;
+    }
+    
     public String getNombre() {
         return nombre;
     }
@@ -37,12 +43,4 @@ public class Carta {
     public void setPrecio(double precio) {
         this.precio = precio;
     }
-
-    @Override
-    public String toString() {
-        return "Carta{nombre=" + nombre + ", precio=" + precio + '}';
-    }
-    
-    
-    
 }

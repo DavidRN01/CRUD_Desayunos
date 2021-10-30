@@ -11,17 +11,29 @@ package models;
  */
 public class Pedido {
     
+    private int id;
+    private int producto_id;
     private String nombre;
     private double precio;
 
     public Pedido() {
     }
 
-    public Pedido(String nombre, double precio) {
+    public Pedido(int id, int producto_id, String nombre, double precio) {
+        this.id = id;
+        this.producto_id = producto_id;
         this.nombre = nombre;
         this.precio = precio;
     }
 
+    public int getId() {
+        return id;
+    }
+    
+    public int getProductoId() {
+        return producto_id;
+    }
+    
     public String getNombre() {
         return nombre;
     }
@@ -37,12 +49,5 @@ public class Pedido {
     public void setPrecio(double precio) {
         this.precio = precio;
     }
-
-    @Override
-    public String toString() {
-        return "Pedido{" + "nombre=" + nombre + ", precio=" + precio + '}';
-    }
-    
-    
     
 }
