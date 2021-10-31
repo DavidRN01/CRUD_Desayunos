@@ -32,6 +32,7 @@ public class Ventana extends javax.swing.JFrame {
     private final String INSERCION_PEDIDO = "INSERT INTO pedidos (producto_id, nombre, precio, fecha) VALUES (?, ?, ?, ?)";
     private final String BORRAR_PEDIDO = "DELETE FROM pedidos WHERE id = ?";
     private final String SELECT_ALL_HOY = "SELECT * FROM pedidos WHERE fecha = ? AND estado = 'SIN ENTREGAR'";
+    private final String MARCAR_RECOGIDO = "UPDATE pedidos SET estado = 'RECOGIDO' WHERE id = ?";
     
     //Atributos
     private int id;
@@ -218,6 +219,11 @@ public class Ventana extends javax.swing.JFrame {
         jPanel2.add(btnLeer);
 
         btnRecogido.setText("Marcar como recogido");
+        btnRecogido.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRecogidoActionPerformed(evt);
+            }
+        });
         jPanel2.add(btnRecogido);
 
         btnBorrar.setText("Borrar comanda");
@@ -429,6 +435,23 @@ public class Ventana extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_btnLeerHoyActionPerformed
+
+    private void btnRecogidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecogidoActionPerformed
+        
+        try(PreparedStatement pst = DriverManager.getConnection(url,user,password).prepareStatement(MARCAR_RECOGIDO);) {
+            
+            //Cojo el valor del id seleccionado en la tabla y dejo el id a 0
+            pst.setInt(1, id);
+            pst.executeUpdate();
+            id=0;
+            
+            refrescarTablaPedidos();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_btnRecogidoActionPerformed
 
     /**
      * @param args the command line arguments
