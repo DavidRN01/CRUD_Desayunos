@@ -30,6 +30,7 @@ public class Ventana extends javax.swing.JFrame {
     private final String SELECT_ALL_CARTA = "SELECT * FROM carta";
     private final String SELECT_ALL_PEDIDOS = "SELECT * FROM pedidos";
     private final String INSERCION_PEDIDO = "INSERT INTO pedidos (producto_id, nombre, precio, fecha) VALUES (?, ?, ?, ?)";
+    private final String BORRAR_PEDIDO = "DELETE FROM pedidos WHERE id = ?";
     
     //Atributos
     private int id;
@@ -84,6 +85,11 @@ public class Ventana extends javax.swing.JFrame {
         seleccionLeer.getContentPane().add(btnLeerHoy);
 
         btnLeerTodo.setText("Leer todas la comandas");
+        btnLeerTodo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLeerTodoActionPerformed(evt);
+            }
+        });
         seleccionLeer.getContentPane().add(btnLeerTodo);
 
         tabla_carta.setModel(new javax.swing.table.DefaultTableModel(
@@ -170,6 +176,11 @@ public class Ventana extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        tabla_pedidos.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tabla_pedidosMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tabla_pedidos);
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -204,6 +215,11 @@ public class Ventana extends javax.swing.JFrame {
         jPanel2.add(btnRecogido);
 
         btnBorrar.setText("Borrar comanda");
+        btnBorrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBorrarActionPerformed(evt);
+            }
+        });
         jPanel2.add(btnBorrar);
 
         getContentPane().add(jPanel2, java.awt.BorderLayout.SOUTH);
@@ -211,7 +227,7 @@ public class Ventana extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-        private void refrescarTablaPedidos() {
+    private void refrescarTablaPedidos() {
 
         //Creo la conexión
         try(Connection con = DriverManager.getConnection(url, user, password);
@@ -228,7 +244,7 @@ public class Ventana extends javax.swing.JFrame {
             //a un array de objetos
             while(resultado.next()) {
                 Object[] fila = {
-                    resultado.getInt("producto_id"),
+                    resultado.getInt("id"),
                     resultado.getString("nombre"),
                     resultado.getDouble("precio"),
                     resultado.getDate("fecha")
@@ -307,14 +323,14 @@ public class Ventana extends javax.swing.JFrame {
         //en la tabla al clickar
         seleccionLabel.setText("Ha seleccionado: " + (String) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 1));
         id = (Integer) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 0);
-        nombre = nombrePedido.getText();
         precio = (Double) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 2);
     }//GEN-LAST:event_tabla_carta_seleccionMouseClicked
 
     private void btnPedidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPedidoActionPerformed
         
         try(PreparedStatement pst = DriverManager.getConnection(url,user,password).prepareStatement(INSERCION_PEDIDO);) {
-            
+
+            nombre = nombrePedido.getText();
             pst.setInt(1, id);
             pst.setString(2, nombre);
             pst.setDouble(3, precio);
@@ -339,6 +355,32 @@ public class Ventana extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_btnPedidoActionPerformed
+
+    private void tabla_pedidosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabla_pedidosMouseClicked
+
+        id = (Integer) ((DefaultTableModel) tabla_pedidos.getModel()).getValueAt(tabla_pedidos.getSelectedRow(), 0);
+
+    }//GEN-LAST:event_tabla_pedidosMouseClicked
+
+    private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
+        try(PreparedStatement pst = DriverManager.getConnection(url,user,password).prepareStatement(BORRAR_PEDIDO);) {
+            
+            //Cojo el valor del id seleccionado en la tabla y dejo el id a 0
+            pst.setInt(1, id);
+            pst.executeUpdate();
+            refrescarTablaPedidos();
+            id=0;
+            
+            refrescarTablaPedidos();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btnBorrarActionPerformed
+
+    private void btnLeerTodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLeerTodoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnLeerTodoActionPerformed
 
     /**
      * @param args the command line arguments
