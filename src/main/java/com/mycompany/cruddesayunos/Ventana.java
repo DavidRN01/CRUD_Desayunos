@@ -7,6 +7,7 @@ package com.mycompany.cruddesayunos;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,6 +29,12 @@ public class Ventana extends javax.swing.JFrame {
     //Consultas SQL
     private final String SELECT_ALL_CARTA = "SELECT * FROM carta";
     private final String SELECT_ALL_PEDIDOS = "SELECT * FROM pedidos";
+    private final String INSERCION_PEDIDO = "INSERT INTO pedidos (producto_id, nombre, precio, fecha) VALUES (?, ?, ?, ?)";
+    
+    //Atributos
+    private int id;
+    private String nombre;
+    private double precio;
     
     /**
      * Creates new form Ventana
@@ -52,6 +59,14 @@ public class Ventana extends javax.swing.JFrame {
         carta = new javax.swing.JFrame();
         jScrollPane2 = new javax.swing.JScrollPane();
         tabla_carta = new javax.swing.JTable();
+        cartaSeleccion = new javax.swing.JFrame();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tabla_carta_seleccion = new javax.swing.JTable();
+        jPanel3 = new javax.swing.JPanel();
+        nombreLabel = new javax.swing.JLabel();
+        nombrePedido = new javax.swing.JTextField();
+        seleccionLabel = new javax.swing.JLabel();
+        btnPedido = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tabla_pedidos = new javax.swing.JTable();
@@ -76,11 +91,11 @@ public class Ventana extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Nombre", "Precio"
+                "Id", "Nombre", "Precio"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class
+                java.lang.Integer.class, java.lang.String.class, java.lang.Double.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -91,6 +106,50 @@ public class Ventana extends javax.swing.JFrame {
 
         carta.getContentPane().add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
+        tabla_carta_seleccion.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Id", "Nombre", "Precio"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        tabla_carta_seleccion.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tabla_carta_seleccionMouseClicked(evt);
+            }
+        });
+        jScrollPane3.setViewportView(tabla_carta_seleccion);
+
+        cartaSeleccion.getContentPane().add(jScrollPane3, java.awt.BorderLayout.CENTER);
+
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        nombreLabel.setText("Nombre para el pedido:");
+        jPanel3.add(nombreLabel, java.awt.BorderLayout.WEST);
+        jPanel3.add(nombrePedido, java.awt.BorderLayout.CENTER);
+
+        seleccionLabel.setText("Ha seleccionado: ");
+        jPanel3.add(seleccionLabel, java.awt.BorderLayout.PAGE_START);
+
+        btnPedido.setText("Hacer pedido");
+        btnPedido.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPedidoActionPerformed(evt);
+            }
+        });
+        jPanel3.add(btnPedido, java.awt.BorderLayout.PAGE_END);
+
+        cartaSeleccion.getContentPane().add(jPanel3, java.awt.BorderLayout.PAGE_END);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setLayout(new java.awt.BorderLayout());
@@ -100,9 +159,17 @@ public class Ventana extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Id", "Nombre", "Precio", "Fecha"
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.String.class, java.lang.Double.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tabla_pedidos);
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -158,13 +225,13 @@ public class Ventana extends javax.swing.JFrame {
             modelo.setRowCount(0);
 
             //Por cada resultado añado los campos de la tabla de la base de datos
-            //a un array de strings
+            //a un array de objetos
             while(resultado.next()) {
-                String[] fila = {
-                    resultado.getString("id"),
-                    resultado.getString("producto_id"),
+                Object[] fila = {
+                    resultado.getInt("producto_id"),
                     resultado.getString("nombre"),
-                    resultado.getString("precio")
+                    resultado.getDouble("precio"),
+                    resultado.getDate("fecha")
                 };
                 //Añado cada array al modelo de la tabla
                 modelo.addRow(fila);
@@ -191,12 +258,12 @@ public class Ventana extends javax.swing.JFrame {
             modelo.setRowCount(0);
 
             //Por cada resultado añado los campos de la tabla de la base de datos
-            //a un array de strings
+            //a un array de objetos
             while(resultado.next()) {
-                String precio = ""+resultado.getDouble("precio");
-                String[] fila = {
+                Object[] fila = {
+                    resultado.getInt("id"),
                     resultado.getString("nombre"),
-                    precio
+                    resultado.getDouble("precio")
                 };
                 //Añado cada array al modelo de la tabla
                 modelo.addRow(fila);
@@ -204,6 +271,7 @@ public class Ventana extends javax.swing.JFrame {
             
             //Le asigno el modelo nuevo a la tabla
             tabla_carta.setModel(modelo);
+            tabla_carta_seleccion.setModel(modelo);
             
         } catch (SQLException ex) {
             Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
@@ -212,7 +280,12 @@ public class Ventana extends javax.swing.JFrame {
 
     
     private void btnCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearActionPerformed
-        // TODO add your handling code here:
+        
+        refrescarTablaCarta();
+        
+        cartaSeleccion.setSize(500, 500);
+        cartaSeleccion.setVisible(true);
+        
     }//GEN-LAST:event_btnCrearActionPerformed
 
     private void btnLeerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLeerActionPerformed
@@ -228,6 +301,44 @@ public class Ventana extends javax.swing.JFrame {
         carta.setVisible(true);
         
     }//GEN-LAST:event_btnCartaActionPerformed
+
+    private void tabla_carta_seleccionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabla_carta_seleccionMouseClicked
+        //Aquí asigno a los atributos de la clase los campos que se hayan seleccionado
+        //en la tabla al clickar
+        seleccionLabel.setText("Ha seleccionado: " + (String) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 1));
+        id = (Integer) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 0);
+        nombre = nombrePedido.getText();
+        precio = (Double) ((DefaultTableModel) tabla_carta_seleccion.getModel()).getValueAt(tabla_carta_seleccion.getSelectedRow(), 2);
+    }//GEN-LAST:event_tabla_carta_seleccionMouseClicked
+
+    private void btnPedidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPedidoActionPerformed
+        
+        try(PreparedStatement pst = DriverManager.getConnection(url,user,password).prepareStatement(INSERCION_PEDIDO);) {
+            
+            pst.setInt(1, id);
+            pst.setString(2, nombre);
+            pst.setDouble(3, precio);
+            //Asigno la fecha actual al campo fecha
+            java.util.Date ahora = new java.util.Date();
+            java.sql.Date fecha = new java.sql.Date(ahora.getTime());
+            pst.setDate(4, fecha);
+            
+            pst.executeUpdate();
+            refrescarTablaPedidos();
+            
+            //Dejo los valores a 0 para que no se guarden
+            id=0;
+            nombre="";
+            nombrePedido.setText("");
+            precio=0;
+            
+            cartaSeleccion.setVisible(false);
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_btnPedidoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -271,14 +382,22 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JButton btnLeer;
     private javax.swing.JButton btnLeerHoy;
     private javax.swing.JButton btnLeerTodo;
+    private javax.swing.JButton btnPedido;
     private javax.swing.JButton btnRecogido;
     private javax.swing.JFrame carta;
+    private javax.swing.JFrame cartaSeleccion;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JLabel nombreLabel;
+    private javax.swing.JTextField nombrePedido;
+    private javax.swing.JLabel seleccionLabel;
     private javax.swing.JDialog seleccionLeer;
     private javax.swing.JTable tabla_carta;
+    private javax.swing.JTable tabla_carta_seleccion;
     private javax.swing.JTable tabla_pedidos;
     // End of variables declaration//GEN-END:variables
 }

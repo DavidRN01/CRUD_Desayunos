@@ -5,6 +5,8 @@
  */
 package models;
 
+import java.sql.Date;
+
 /**
  *
  * @author david
@@ -15,16 +17,28 @@ public class Pedido {
     private int producto_id;
     private String nombre;
     private double precio;
+    private Date fecha;
 
     public Pedido() {
     }
 
-    public Pedido(int id, int producto_id, String nombre, double precio) {
+    public Pedido(int id, int producto_id, String nombre, double precio, Date fecha) {
         this.id = id;
         this.producto_id = producto_id;
         this.nombre = nombre;
         this.precio = precio;
+        this.fecha = fecha;
     }
+
+    public Date getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(Date fecha) {
+        this.fecha = fecha;
+    }
+
+    
 
     public int getId() {
         return id;
