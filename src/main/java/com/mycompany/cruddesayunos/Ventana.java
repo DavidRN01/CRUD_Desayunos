@@ -31,6 +31,7 @@ public class Ventana extends javax.swing.JFrame {
     private final String SELECT_ALL_PEDIDOS = "SELECT * FROM pedidos";
     private final String INSERCION_PEDIDO = "INSERT INTO pedidos (producto_id, nombre, precio, fecha) VALUES (?, ?, ?, ?)";
     private final String BORRAR_PEDIDO = "DELETE FROM pedidos WHERE id = ?";
+    private final String SELECT_ALL_HOY = "SELECT * FROM pedidos WHERE fecha = ? AND estado = 'SIN ENTREGAR'";
     
     //Atributos
     private int id;
@@ -82,6 +83,11 @@ public class Ventana extends javax.swing.JFrame {
         seleccionLeer.getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         btnLeerHoy.setText("Leer solo las de hoy");
+        btnLeerHoy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLeerHoyActionPerformed(evt);
+            }
+        });
         seleccionLeer.getContentPane().add(btnLeerHoy);
 
         btnLeerTodo.setText("Leer todas la comandas");
@@ -165,11 +171,11 @@ public class Ventana extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Id", "Nombre", "Precio", "Fecha"
+                "Id", "Nombre", "Precio", "Fecha", "Estado"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.String.class, java.lang.Double.class, java.lang.Object.class
+                java.lang.Integer.class, java.lang.String.class, java.lang.Double.class, java.lang.Object.class, java.lang.String.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -247,7 +253,8 @@ public class Ventana extends javax.swing.JFrame {
                     resultado.getInt("id"),
                     resultado.getString("nombre"),
                     resultado.getDouble("precio"),
-                    resultado.getDate("fecha")
+                    resultado.getDate("fecha"),
+                    resultado.getString("estado")
                 };
                 //Añado cada array al modelo de la tabla
                 modelo.addRow(fila);
@@ -294,7 +301,6 @@ public class Ventana extends javax.swing.JFrame {
         }
     }
 
-    
     private void btnCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearActionPerformed
         
         refrescarTablaCarta();
@@ -347,6 +353,7 @@ public class Ventana extends javax.swing.JFrame {
             nombre="";
             nombrePedido.setText("");
             precio=0;
+            seleccionLabel.setText("Ha seleccionado: ");
             
             cartaSeleccion.setVisible(false);
             
@@ -368,7 +375,6 @@ public class Ventana extends javax.swing.JFrame {
             //Cojo el valor del id seleccionado en la tabla y dejo el id a 0
             pst.setInt(1, id);
             pst.executeUpdate();
-            refrescarTablaPedidos();
             id=0;
             
             refrescarTablaPedidos();
@@ -379,8 +385,50 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBorrarActionPerformed
 
     private void btnLeerTodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLeerTodoActionPerformed
-        // TODO add your handling code here:
+        
+        refrescarTablaPedidos();
+        seleccionLeer.setVisible(false);
+        
     }//GEN-LAST:event_btnLeerTodoActionPerformed
+
+    private void btnLeerHoyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLeerHoyActionPerformed
+        
+        try(PreparedStatement pst = DriverManager.getConnection(url,user,password).prepareStatement(SELECT_ALL_HOY);) {
+            
+            //Guardo los resultados de la consulta en un resultset
+            java.util.Date ahora = new java.util.Date();
+            java.sql.Date fecha = new java.sql.Date(ahora.getTime());
+            pst.setDate(1, fecha);
+            ResultSet resultado = pst.executeQuery();
+            
+            //Saco el modelo de la tabla y lo borro todo
+            DefaultTableModel modelo = (DefaultTableModel) tabla_pedidos.getModel();
+            modelo.setRowCount(0);
+
+            //Por cada resultado añado los campos de la tabla de la base de datos
+            //a un array de objetos
+            while(resultado.next()) {
+                Object[] fila = {
+                    resultado.getInt("id"),
+                    resultado.getString("nombre"),
+                    resultado.getDouble("precio"),
+                    resultado.getDate("fecha"),
+                    resultado.getString("estado")
+                };
+                //Añado cada array al modelo de la tabla
+                modelo.addRow(fila);
+            }
+            
+            //Le asigno el modelo nuevo a la tabla
+            tabla_pedidos.setModel(modelo);
+            
+            seleccionLeer.setVisible(false);
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_btnLeerHoyActionPerformed
 
     /**
      * @param args the command line arguments
